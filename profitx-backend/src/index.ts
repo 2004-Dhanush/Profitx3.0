@@ -37,7 +37,31 @@ app.use(notFound);
 app.use(errorHandler);
 
 async function startServer(): Promise<void> {
-  await readData();
+  const maxRetries = Number(process.env.STARTUP_RETRIES ?? 5);
+  const baseDelayMs = Number(process.env.STARTUP_RETRY_DELAY_MS ?? 2000);
+
+  let attempt = 0;
+  while (true) {
+    try {
+      attempt += 1;
+      // eslint-disable-next-line no-console
+      console.log(`Starting initialization (attempt ${attempt}/${maxRetries})`);
+      await readData();
+      break;
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(`Initialization attempt ${attempt} failed:`, err);
+      if (attempt >= maxRetries) {
+        // eslint-disable-next-line no-console
+        console.error('Max initialization attempts reached, exiting.');
+        throw err;
+      }
+      const waitMs = baseDelayMs * attempt;
+      // eslint-disable-next-line no-console
+      console.log(`Retrying initialization in ${waitMs}ms...`);
+      await new Promise((r) => setTimeout(r, waitMs));
+    }
+  }
 
   const PORT = Number(process.env.PORT ?? config.port ?? 5000);
 
@@ -49,6 +73,6 @@ async function startServer(): Promise<void> {
 
 startServer().catch((error) => {
   // eslint-disable-next-line no-console
-  console.error('Failed to start backend:', error);
+  console.error('Failed to start backend after retries:', error?.stack ?? error);
   process.exit(1);
 });
