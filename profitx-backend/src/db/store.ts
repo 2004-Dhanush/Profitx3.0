@@ -27,13 +27,17 @@ const defaultData: AppData = {
   },
 };
 
-if (!config.databaseUrl) {
+const effectiveDatabaseUrl = process.env.DATABASE_URL ?? config.databaseUrl;
+
+if (!effectiveDatabaseUrl) {
   throw new Error('Missing DATABASE_URL environment variable');
 }
 
 const pool = new Pool({
-  connectionString: config.databaseUrl,
-  ssl: { rejectUnauthorized: false },
+  connectionString: effectiveDatabaseUrl,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 let isInitialized = false;
