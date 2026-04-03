@@ -51,8 +51,8 @@
       "eas": {
         "projectId": "8396bc80-142e-4b06-871a-6a82c098b1fc"
       },
-      "EXPO_PUBLIC_API_BASE_URL": "https://zzbmdlxkbbyhzisbtrxo.supabase.co/api",
-      "EXPO_PUBLIC_API_URL": "https://zzbmdlxkbbyhzisbtrxo.supabase.co",
+      "EXPO_PUBLIC_API_BASE_URL": "https://profitx3-0.onrender.com/api",
+      "EXPO_PUBLIC_API_URL": "https://profitx3-0.onrender.com",
       "EXPO_PUBLIC_SUPABASE_URL": "https://zzbmdlxkbbyhzisbtrxo.supabase.co",
       "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_Ry2PfTWFMKfGjEVlNrh_SA_5Ulf2e8h"
     },
