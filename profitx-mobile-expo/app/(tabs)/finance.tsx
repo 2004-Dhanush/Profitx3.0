@@ -700,18 +700,20 @@ export default function FinanceScreen() {
             </ScrollView>
 
             <View style={styles.detailFooter}>
-              {!selectedVendorIsCompleted ? (
-                <TouchableOpacity style={styles.deleteVendorBtn} onPress={() => selectedVendor && handleCompleteVendor(selectedVendor.id)} activeOpacity={0.8}>
-                  <Ionicons name="checkmark-circle-outline" size={14} color="#A9FF4A" />
-                  <Text style={styles.deleteVendorBtnText}>Complete</Text>
-                </TouchableOpacity>
-              ) : null}
-              {!selectedVendorIsCompleted ? (
-                <TouchableOpacity style={styles.deleteVendorBtn} onPress={() => selectedVendor && handleDeleteVendor(selectedVendor.id)} activeOpacity={0.8}>
-                  <Ionicons name="trash-outline" size={14} color="#FF7B7B" />
-                  <Text style={styles.deleteVendorBtnText}>Delete Vendor</Text>
-                </TouchableOpacity>
-              ) : null}
+              <View style={styles.detailFooterLeft}>
+                {!selectedVendorIsCompleted ? (
+                  <TouchableOpacity style={styles.completeBtn} onPress={() => selectedVendor && handleCompleteVendor(selectedVendor.id)} activeOpacity={0.8}>
+                    <Ionicons name="checkmark-circle-outline" size={14} color="#0B1204" />
+                    <Text style={styles.completeBtnText}>Complete</Text>
+                  </TouchableOpacity>
+                ) : null}
+                {!selectedVendorIsCompleted ? (
+                  <TouchableOpacity style={styles.deleteVendorBtn} onPress={() => selectedVendor && handleDeleteVendor(selectedVendor.id)} activeOpacity={0.8}>
+                    <Ionicons name="trash-outline" size={14} color="#FF7B7B" />
+                    <Text style={styles.deleteVendorBtnText}>Delete Vendor</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
               <TouchableOpacity style={styles.applyBtn} onPress={() => setSelectedVendorId(null)}>
                 <Text style={styles.applyBtnText}>Close</Text>
               </TouchableOpacity>
@@ -888,7 +890,7 @@ export default function FinanceScreen() {
         <Pressable style={styles.modalOverlay} onPress={() => setHistoryOpen(false)}>
           <Pressable style={styles.filterModal} onPress={() => {}}>
             <View style={styles.historyModalHeader}>
-              <Ionicons name="time-outline" size={18} color="#ACFE3E" style={{ marginRight: 6 }} />
+              <Ionicons name="time-outline" size={18} color="#ACFE3E" style={{ marginRight: 4,  position: 'relative', top: -5 }} />
               <Text style={styles.filterTitle}>Completed Payments</Text>
             </View>
 
@@ -1358,7 +1360,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   historyDeleteBtn: {
-    width: 24,
+    width: 15,
     height: 24,
     borderRadius: 12,
     alignItems: 'center',
@@ -1478,13 +1480,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 4,
+    gap: 2,
+  },
+  detailFooterLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   deleteVendorBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
     borderRadius: 11,
     borderWidth: 1,
     borderColor: 'rgba(255,123,123,0.35)',
@@ -1495,16 +1503,36 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
+  completeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(10, 80, 0, 0.15)',
+    backgroundColor: '#ACFE3E',
+    marginRight: 4,
+  },
+  completeBtnText: {
+    color: '#0B1204',
+    fontSize: 13,
+    fontWeight: '700',
+  },
   applyBtn: {
     alignSelf: 'flex-end',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    
     borderRadius: 11,
     backgroundColor: '#ACFE3E',
   },
   applyBtnText: {
     color: '#0B1204',
     fontSize: 13,
+    marginTop:0,
+    paddingVertical: 4,
     fontWeight: '700',
   },
   actionLoadingRow: {

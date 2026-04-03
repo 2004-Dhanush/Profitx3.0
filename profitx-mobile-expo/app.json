@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "profitx-mobile-expo",
-    "slug": "profitx-mobile-expo",
+    "name": "ProfitX",
+    "slug": "ProfitX",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/app.png",
     "scheme": "profitxmobileexpo",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,9 +14,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/app.png",
+        "backgroundImage": "./assets/images/app.png",
+        "monochromeImage": "./assets/images/app.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -49,8 +49,20 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "7f15b093-9393-4ffb-929b-b98c215d67f7"
-      }
+        "projectId": "8396bc80-142e-4b06-871a-6a82c098b1fc"
+      },
+      "EXPO_PUBLIC_API_BASE_URL": "https://zzbmdlxkbbyhzisbtrxo.supabase.co/api",
+      "EXPO_PUBLIC_API_URL": "https://zzbmdlxkbbyhzisbtrxo.supabase.co",
+      "EXPO_PUBLIC_SUPABASE_URL": "https://zzbmdlxkbbyhzisbtrxo.supabase.co",
+      "EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_Ry2PfTWFMKfGjEVlNrh_SA_5Ulf2e8h"
+    },
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "ON_ERROR_RECOVERY",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, SafeAreaView, StyleSheet, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { fetchMyProfile, updateMyProfile } from './lib/profile';
+import { fetchMyProfile, updateMyProfile } from '../lib/profile';
 import { signOut } from './lib/auth';
 import { router } from 'expo-router';
 

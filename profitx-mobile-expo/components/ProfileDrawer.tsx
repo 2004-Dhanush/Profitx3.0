@@ -20,6 +20,8 @@ import {
 import { LinearGradient as _LG } from 'expo-linear-gradient';
 const LinearGradient = _LG as React.ComponentType<any>;
 import { Ionicons } from '@expo/vector-icons';
+import { updateMyProfile } from '../lib/profile';
+import { apiFetch } from '../constants/api-client';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.9;
@@ -210,10 +212,37 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
         [ownerNameKey, trimmedOwnerName],
         [shopNameKey, trimmedShopName],
       ]);
+
+      // Try updating remote profile via Supabase and backend API.
+      // Failure here should not block local update.
+      try {
+        // Update Supabase profile if authenticated (best-effort)
+        try {
+          await updateMyProfile({ shop_name: trimmedShopName, owner_name: trimmedOwnerName });
+        } catch (e) {
+          console.warn('Supabase profile update failed', e);
+        }
+
+        // Also call backend endpoint to persist profile by email when available
+        if (loginEmail && loginEmail.trim()) {
+          try {
+            await apiFetch('/auth/profile', {
+              method: 'POST',
+              body: JSON.stringify({ email: loginEmail.trim().toLowerCase(), shopName: trimmedShopName, ownerName: trimmedOwnerName }),
+            });
+          } catch (e) {
+            console.warn('Backend profile update failed', e);
+          }
+        }
+      } catch (e) {
+        console.warn('Remote profile update failed', e);
+      }
+
       setProfile({ ownerName: trimmedOwnerName, shopName: trimmedShopName });
       setEditOpen(false);
       onClose();
-    } catch {
+    } catch (err) {
+      console.warn('Failed to save profile locally', err);
       Alert.alert('Error', 'Unable to update profile now. Please try again.');
     }
   };

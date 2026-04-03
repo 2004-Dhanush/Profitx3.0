@@ -75,6 +75,7 @@ type CardRow = {
   name: string;
   started_on: string;
   initial_amount: number | string;
+  total_savings?: number | string;
 };
 
 type VendorPatchInput = {
@@ -185,7 +186,8 @@ async function initializeData(): Promise<void> {
       user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
       started_on TEXT NOT NULL,
-      initial_amount NUMERIC NOT NULL
+      initial_amount NUMERIC NOT NULL,
+      total_savings NUMERIC NOT NULL DEFAULT 0
     );
 
     CREATE TABLE IF NOT EXISTS saving_deposits (
@@ -246,9 +248,21 @@ async function initializeData(): Promise<void> {
     [defaultData.settings.shopName, defaultData.settings.ownerName],
   );
 
+  // Ensure `total_savings` column exists for older DBs, then populate it
+  await pool.query(`ALTER TABLE saving_cards ADD COLUMN IF NOT EXISTS total_savings NUMERIC NOT NULL DEFAULT 0`);
+  await pool.query(`
+    UPDATE saving_cards sc
+    SET total_savings = COALESCE(sc.initial_amount, 0) + COALESCE(sub.sum_deposits, 0)
+    FROM (
+      SELECT card_id, SUM(amount)::numeric AS sum_deposits
+      FROM saving_deposits
+      GROUP BY card_id
+    ) sub
+    WHERE sc.id = sub.card_id
+  `);
+
   isInitialized = true;
 }
-
 function toPaymentRecord(row: PaymentRow | DepositRow): PaymentRecord {
   return {
     amount: Number(row.amount),
@@ -491,6 +505,28 @@ export async function findUserByEmail(email: string): Promise<User | null> {
   };
 }
 
+export async function findUserBySupabaseId(supabaseId: string): Promise<User | null> {
+  await initializeData();
+
+  const result = await pool.query(
+    'SELECT id, email, password, supabase_id, role, shop_name, owner_name FROM users WHERE supabase_id = $1 LIMIT 1',
+    [supabaseId],
+  );
+
+  const row = result.rows[0];
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    email: row.email,
+    password: row.password,
+    supabaseId: (row as any).supabase_id ?? null,
+    role: row.role,
+    shopName: row.shop_name,
+    ownerName: row.owner_name,
+  };
+}
+
 export async function upsertUserProfile(email: string, shopName?: string, ownerName?: string, supabaseId?: string | null): Promise<string> {
   await initializeData();
 
@@ -564,8 +600,8 @@ export async function createSavingCard(input: {
   await initializeData();
 
   await pool.query(
-    'INSERT INTO saving_cards (id, user_id, name, started_on, initial_amount) VALUES ($1, $2, $3, $4, $5)',
-    [input.id, input.userId, input.name, input.startedOn, input.initialAmount],
+    'INSERT INTO saving_cards (id, user_id, name, started_on, initial_amount, total_savings) VALUES ($1, $2, $3, $4, $5, $6)',
+    [input.id, input.userId, input.name, input.startedOn, input.initialAmount, input.initialAmount],
   );
 }
 
@@ -655,7 +691,7 @@ export async function listSavingCardsByUser(userId: string) {
   await initializeData();
 
   const [cardsResult, depositsResult] = await Promise.all([
-    pool.query('SELECT id, user_id, name, started_on, initial_amount FROM saving_cards WHERE user_id = $1 ORDER BY id ASC', [userId]),
+    pool.query('SELECT id, user_id, name, started_on, initial_amount, total_savings FROM saving_cards WHERE user_id = $1 ORDER BY id ASC', [userId]),
     pool.query(`SELECT d.card_id, d.amount, d.month, d.year, d.paid_on, d.timestamp
        FROM saving_deposits d
        INNER JOIN saving_cards c ON c.id = d.card_id
@@ -676,6 +712,7 @@ export async function listSavingCardsByUser(userId: string) {
     startedOn: row.started_on,
     initialAmount: Number(row.initial_amount),
     deposits: depositMap.get(row.id) ?? [],
+    totalSavings: Number((row as any).total_savings ?? row.initial_amount ?? 0),
   }));
 }
 
@@ -728,6 +765,12 @@ export async function addSavingDepositByUser(
   await pool.query(
     'INSERT INTO saving_deposits (card_id, amount, month, year, paid_on, timestamp) VALUES ($1, $2, $3, $4, $5, $6)',
     [cardId, deposit.amount, deposit.month, deposit.year, deposit.paidOn, deposit.timestamp],
+  );
+
+  // Update cached total_savings on the card
+  await pool.query(
+    'UPDATE saving_cards SET total_savings = COALESCE(total_savings, 0) + $1 WHERE id = $2',
+    [deposit.amount, cardId],
   );
 
   return deposit;

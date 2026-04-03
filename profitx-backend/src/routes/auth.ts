@@ -1,14 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Router } from 'express';
 import { z } from 'zod';
-import { createUser, findUserByCredentials, findUserById, upsertUserProfile } from '../db/store';
+import { createUser, findUserByCredentials, findUserById, upsertUserProfile, findUserBySupabaseId } from '../db/store';
 import { createAuthToken } from '../security/token';
 import { requireAuth, getAuthUserId } from '../middleware/auth';
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
+const loginSchema = z.union([
+  z.object({ supabaseId: z.string().min(1) }),
+  z.object({ email: z.string().email(), password: z.string().min(1) }),
+]);
 
 const registerSchema = z.object({
   email: z.string().email(),
@@ -38,8 +38,8 @@ authRouter.post('/auth/register', async (req, res) => {
       password: parsed.data.supabaseId ? null : parsed.data.password,
       supabaseId: parsed.data.supabaseId ?? null,
       role: 'staff' as const,
-      shopName: parsed.data.shopName,
-      ownerName: parsed.data.ownerName,
+      shopName: parsed.data.shopName ?? '',
+      ownerName: parsed.data.ownerName ?? '',
     };
 
     const created = await createUser(newUser);
@@ -71,16 +71,18 @@ authRouter.post('/auth/register', async (req, res) => {
 
 authRouter.post('/auth/login', async (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
-  if (!parsed.success) {
-    return res.status(400).json({ message: 'Invalid payload', issues: parsed.error.flatten() });
-  }
+  if (!parsed.success) return res.status(400).json({ message: 'Invalid payload', issues: parsed.error.flatten() });
 
   try {
-    const user = await findUserByCredentials(parsed.data.email.trim().toLowerCase(), parsed.data.password);
-
-    if (!user) {
-      return res.status(401).json({ message: 'Invalid credentials' });
+    let user;
+    if ('supabaseId' in parsed.data) {
+      // Login by Supabase ID (third-party auth)
+      user = await findUserBySupabaseId(parsed.data.supabaseId);
+    } else {
+      user = await findUserByCredentials(parsed.data.email.trim().toLowerCase(), parsed.data.password);
     }
+
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
     const token = createAuthToken(user.id);
 
@@ -92,14 +94,12 @@ authRouter.post('/auth/login', async (req, res) => {
         role: user.role,
         shopName: user.shopName,
         ownerName: user.ownerName,
+        supabaseId: (user as any).supabaseId ?? null,
       },
     });
   } catch (error) {
     console.error('Error logging in user:', error);
-    return res.status(500).json({
-      message: 'Failed to login user',
-      detail: error instanceof Error ? error.message : 'Unknown error'
-    });
+    return res.status(500).json({ message: 'Failed to login user', detail: error instanceof Error ? error.message : 'Unknown error' });
   }
 });
 

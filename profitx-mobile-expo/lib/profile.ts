@@ -1,4 +1,4 @@
-import { supabase } from '../../constants/supabase';
+import { supabase } from '../constants/supabase';
 
 export type Profile = {
   id: string;
@@ -9,11 +9,12 @@ export type Profile = {
 };
 
 export async function fetchProfileById(id: string) {
-  const { data, error } = await supabase
-    .from<Profile>('profiles')
+  const result = await supabase
+    .from('profiles')
     .select('id, email, shop_name, owner_name, created_at')
     .eq('id', id)
     .single();
+  const { data, error } = result as { data: Profile | null; error: any };
   if (error) throw error;
   return data;
 }

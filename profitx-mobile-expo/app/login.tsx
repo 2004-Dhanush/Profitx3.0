@@ -10,7 +10,7 @@ import {
   STORAGE_KEYS,
 } from '../constants/app-flow';
 import { signIn } from './lib/auth';
-import { fetchMyProfile } from './lib/profile';
+import { fetchMyProfile } from '../lib/profile';
 import {
     Dimensions,
     Image,
@@ -155,16 +155,28 @@ export default function LoginScreen() {
                 if (migrations.length > 0) await AsyncStorage.multiSet(migrations);
               }
 
-              // Try to fetch profile from Supabase and persist shop/owner locally
+              // Persist shopName/ownerName returned by backend login if present
               try {
-                const profile = await fetchMyProfile();
-                if (profile) {
-                  if (profile.shop_name != null) await AsyncStorage.setItem(shopNameKey, String(profile.shop_name));
-                  if (profile.owner_name != null) await AsyncStorage.setItem(ownerNameKey, String(profile.owner_name));
-                  if (profile.shop_name != null || profile.owner_name != null) await AsyncStorage.setItem(profileCreatedKey, 'true');
+                const backendUser = result.user ?? null;
+                if (backendUser?.shopName != null) await AsyncStorage.setItem(shopNameKey, String(backendUser.shopName));
+                if (backendUser?.ownerName != null) await AsyncStorage.setItem(ownerNameKey, String(backendUser.ownerName));
+                if (backendUser?.shopName != null || backendUser?.ownerName != null) {
+                  await AsyncStorage.setItem(profileCreatedKey, 'true');
+                } else {
+                  // Fallback: try to fetch profile from Supabase if backend didn't return it
+                  try {
+                    const profile = await fetchMyProfile();
+                    if (profile) {
+                      if (profile.shop_name != null) await AsyncStorage.setItem(shopNameKey, String(profile.shop_name));
+                      if (profile.owner_name != null) await AsyncStorage.setItem(ownerNameKey, String(profile.owner_name));
+                      if (profile.shop_name != null || profile.owner_name != null) await AsyncStorage.setItem(profileCreatedKey, 'true');
+                    }
+                  } catch (e) {
+                    console.warn('Failed to load profile after login', e);
+                  }
                 }
               } catch (e) {
-                console.warn('Failed to load profile after login', e);
+                console.warn('Failed to persist profile after login', e);
               }
 
               await Promise.all([
@@ -209,14 +221,15 @@ export default function LoginScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Bottom sign up */}
-      <View style={[styles.bottomRow, isKeyboardOpen && styles.bottomRowKeyboardOpen]}>
+      </KeyboardAvoidingView>
+
+      {/* Bottom sign up - placed outside KeyboardAvoidingView so it's fixed on screen */}
+      <View style={styles.bottomRow} pointerEvents="box-none">
         <Text style={styles.noAccountText}>Dont have an account ? </Text>
         <TouchableOpacity onPress={() => router.push('/signup')}>
           <Text style={styles.signInLink}>sign up</Text>
         </TouchableOpacity>
       </View>
-      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -359,13 +372,16 @@ const styles = StyleSheet.create({
 
   // Bottom
   bottomRow: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 32,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: 32,
   },
   bottomRowKeyboardOpen: {
-    paddingBottom: 10,
+    bottom: 10,
   },
   noAccountText: {
     color: '#888',

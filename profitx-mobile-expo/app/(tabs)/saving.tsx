@@ -989,8 +989,8 @@ export default function SavingScreen() {
         <Pressable style={styles.modalOverlay} onPress={() => setHistoryOpen(false)}>
           <Pressable style={styles.filterModal} onPress={() => {}}>
             <View style={styles.historyModalHeader}>
-              <Ionicons name="time-outline" size={18} color="#ACFE3E" style={{ marginRight: 6 }} />
-              <Text style={styles.filterTitle}>Saving History</Text>
+              <Ionicons name="time-outline" size={18} color="#ACFE3E" style={{ marginRight: 8 }} />
+              <Text style={styles.historyHeaderTitle}>Saving History</Text>
             </View>
 
             {historyVendors.length === 0 ? (
@@ -1052,8 +1052,9 @@ export default function SavingScreen() {
             <Text style={styles.detailMeta}>Completed On: {selectedHistoryCard?.completedOn}</Text>
             <Text style={styles.detailMeta}>Initial Amount: {selectedHistoryCard ? formatCurrency(selectedHistoryCard.initialAmount) : '--'}</Text>
             <Text style={styles.detailMeta}>Total Deposits: {selectedHistoryCard ? formatCurrency(selectedHistoryCard.totalDeposits) : '--'}</Text>
-            <Text style={styles.detailMeta}>Total Savings: {selectedHistoryCard ? formatCurrency(selectedHistoryCard.totalSavings) : '--'}</Text>
-
+           <Text style={[styles.detailMeta, { color: '#34C759' }]}>
+  Total Savings: {selectedHistoryCard ? formatCurrency(selectedHistoryCard.totalSavings) : '--'}
+</Text>
             <Text style={styles.historyTitle}>All Saving Entries</Text>
             <ScrollView style={styles.historyList} showsVerticalScrollIndicator={false}>
               {selectedHistoryCard && selectedHistoryCard.payments.length > 0 ? (
@@ -1453,6 +1454,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 12,
   },
+  historyHeaderTitle: {
+    color: '#F4F7FB',
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
   detailName: {
     color: '#F4F7FB',
     fontSize: 16,
@@ -1625,8 +1632,8 @@ const styles = StyleSheet.create({
   completeVendorBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 12,
+    gap: 2,
+    paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 11,
     borderWidth: 1,
@@ -1642,7 +1649,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 11,
     borderWidth: 1,
@@ -1659,6 +1666,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 11,
+    marginBottom: 1,
     backgroundColor: '#ACFE3E',
   },
   applyBtnText: {
