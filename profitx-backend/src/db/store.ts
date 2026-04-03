@@ -36,7 +36,6 @@ if (!databaseUrl) {
 export const pool = new Pool({
   connectionString: databaseUrl,
   ssl: {
-    require: true,
     rejectUnauthorized: false,
   },
 });
