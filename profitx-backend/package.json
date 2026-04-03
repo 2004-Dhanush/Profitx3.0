@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "build:render": "npm ci --include=dev && npm run build"
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0",
